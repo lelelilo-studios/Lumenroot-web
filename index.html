@@ -1,124 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-		<title>Lumenroot</title>
-		<style>
-html, body, #canvas {
-	margin: 0;
-	padding: 0;
-	border: 0;
-}
-
-body {
-	color: white;
-	background-color: black;
-	overflow: hidden;
-	touch-action: none;
-}
-
-#canvas {
-	display: block;
-}
-
-#canvas:focus {
-	outline: none;
-}
-
-#status, #status-splash, #status-progress {
-	position: absolute;
-	left: 0;
-	right: 0;
-}
-
-#status, #status-splash {
-	top: 0;
-	bottom: 0;
-}
-
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+<title>Lumenroot</title>
+<style>
+html, body, #canvas { margin: 0; padding: 0; border: 0; }
+body { color: #e8dcc0; background: #101d20; overflow: hidden; touch-action: none; }
+#canvas { display: block; }
+#canvas:focus { outline: none; }
 #status {
-	background-color: #242424;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	visibility: hidden;
+  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  background: radial-gradient(ellipse at 50% 55%, #22393a 0%, #16262a 45%, #0c1618 100%);
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif; visibility: hidden;
+  transition: opacity 0.9s ease;
 }
-
-#status-splash {
-	max-height: 100%;
-	max-width: 100%;
-	margin: auto;
+#status.done { opacity: 0; pointer-events: none; }
+/* paper grain */
+#status::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.09; mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
-
-#status-splash.show-image--false {
-	display: none;
-}
-
-#status-splash.fullsize--true {
-	height: 100%;
-	width: 100%;
-	object-fit: contain;
-}
-
-#status-splash.use-filter--false {
-	image-rendering: pixelated;
-}
-
-#status-progress, #status-notice {
-	display: none;
-}
-
-#status-progress {
-	bottom: 10%;
-	width: 50%;
-	margin: 0 auto;
-}
-
-#status-notice {
-	background-color: #5b3943;
-	border-radius: 0.5rem;
-	border: 1px solid #9b3943;
-	color: #e0e0e0;
-	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-	line-height: 1.3;
-	margin: 0 2rem;
-	overflow: hidden;
-	padding: 1rem;
-	text-align: center;
-	z-index: 1;
-}
-		</style>
-		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+#bells { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(1000px, 96vw); height: 90px; }
+#bells .bell { animation: sway 3.2s ease-in-out infinite alternate; }
+@keyframes sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+#emblem { width: min(300px, 42vh); height: min(300px, 42vh); overflow: visible; }
+#ring { transform-origin: 128px 128px; animation: turn 60s linear infinite; }
+@keyframes turn { to { transform: rotate(360deg); } }
+.moth { transform-origin: 128px 124px; animation: orbit 3.1s linear infinite; }
+.moth.b { animation-duration: 4.3s; animation-direction: reverse; }
+@keyframes orbit { to { transform: rotate(360deg); } }
+#flame { transform-origin: 128px 140px; animation: flicker 0.23s ease-in-out infinite alternate; }
+@keyframes flicker { from { transform: scale(1, 1); } to { transform: scale(0.94, 1.06); } }
+h1 { font-weight: normal; letter-spacing: 0.55em; margin: 18px 0 4px 0.55em; font-size: clamp(26px, 4.6vh, 46px); color: #e8dcc0; }
+#proverb { margin: 6px; font-style: italic; color: #b89a78; font-size: clamp(14px, 2.2vh, 20px); min-height: 1.4em; transition: opacity 0.6s; }
+#state { margin-top: 22px; font-size: clamp(12px, 1.7vh, 15px); letter-spacing: 0.12em; color: #8fa8a0; }
+#made-with { position: absolute; right: 16px; bottom: 12px; display: flex; align-items: center; gap: 7px; opacity: 0.5;
+  font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif; font-size: 12px; color: #e8dcc0; }
+#made-with img { width: 18px; height: 18px; }
+#status-notice { display: none; background: #5b3943; border-radius: 0.5rem; border: 1px solid #9b3943; color: #e0e0e0;
+  font-family: 'Noto Sans', Arial, sans-serif; line-height: 1.3; margin: 1rem 2rem; padding: 1rem; text-align: center; z-index: 1; }
+</style>
+<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
-	</head>
-	<body>
-		<canvas id="canvas">
-			Your browser does not support the canvas tag.
-		</canvas>
+</head>
+<body>
+<canvas id="canvas">Your browser does not support the canvas tag.</canvas>
+<noscript>Your browser does not support JavaScript.</noscript>
 
-		<noscript>
-			Your browser does not support JavaScript.
-		</noscript>
+<div id="status">
+  <svg id="bells" viewBox="0 0 1000 90" preserveAspectRatio="xMidYMin meet">
+    <path d="M0 8 C 250 2, 750 14, 1000 6" stroke="#6b4a35" stroke-width="5" fill="none"/>
+    <g class="bell" style="animation-delay:-0.00s; transform-origin:60px 8px">
+      <line x1="60" y1="8" x2="60" y2="26" stroke="#7a5a40" stroke-width="1.5"/>
+      <path d="M54 26 L66 26 L71 43 L49 43 Z" fill="#c9a45c"/>
+      <circle cx="60" cy="45" r="2.4" fill="#2b3033"/>
+      <rect x="64" y="46" width="16" height="7" rx="1" fill="#e8dcc0" opacity="0.8" transform="rotate(8 64 46)"/>
+    </g><g class="bell" style="animation-delay:-0.43s; transform-origin:185px 8px">
+      <line x1="185" y1="8" x2="185" y2="33" stroke="#7a5a40" stroke-width="1.5"/>
+      <path d="M179 33 L191 33 L196 50 L174 50 Z" fill="#c9a45c"/>
+      <circle cx="185" cy="52" r="2.4" fill="#2b3033"/>
+      <rect x="189" y="53" width="16" height="7" rx="1" fill="#e8dcc0" opacity="0.8" transform="rotate(8 189 53)"/>
+    </g><g class="bell" style="animation-delay:-0.86s; transform-origin:280px 8px">
+      <line x1="280" y1="8" x2="280" y2="40" stroke="#7a5a40" stroke-width="1.5"/>
+      <path d="M274 40 L286 40 L291 57 L269 57 Z" fill="#c9a45c"/>
+      <circle cx="280" cy="59" r="2.4" fill="#2b3033"/>
+      <rect x="284" y="60" width="16" height="7" rx="1" fill="#e8dcc0" opacity="0.8" transform="rotate(8 284 60)"/>
+    </g><g class="bell" style="animation-delay:-1.29s; transform-origin:405px 8px">
+      <line x1="405" y1="8" x2="405" y2="47" stroke="#7a5a40" stroke-width="1.5"/>
+      <path d="M399 47 L411 47 L416 64 L394 64 Z" fill="#c9a45c"/>
+      <circle cx="405" cy="66" r="2.4" fill="#2b3033"/>
+      <rect x="409" y="67" width="16" height="7" rx="1" fill="#e8dcc0" opacity="0.8" transform="rotate(8 409 67)"/>
+    </g><g class="bell" style="animation-delay:-1.72s; transform-origin:500px 8px">
+      <line x1="500" y1="8" x2="500" y2="54" stroke="#7a5a40" stroke-width="1.5"/>
+      <path d="M494 54 L506 54 L511 71 L489 71 Z" fill="#c9a45c"/>
+      <circle cx="500" cy="73" r="2.4" fill="#2b3033"/>
+      <rect x="504" y="74" width="16" height="7" rx="1" fill="#e8dcc0" opacity="0.8" transform="rotate(8 504 74)"/>
+    </g><g class="bell" style="animation-delay:-2.15s; transform-origin:625px 8px">
+      <line x1="625" y1="8" x2="625" y2="31" stroke="#7a5a40" stroke-width="1.5"/>
+      <path d="M619 31 L631 31 L636 48 L614 48 Z" fill="#c9a45c"/>
+      <circle cx="625" cy="50" r="2.4" fill="#2b3033"/>
+      <rect x="629" y="51" width="16" height="7" rx="1" fill="#e8dcc0" opacity="0.8" transform="rotate(8 629 51)"/>
+    </g><g class="bell" style="animation-delay:-2.58s; transform-origin:720px 8px">
+      <line x1="720" y1="8" x2="720" y2="38" stroke="#7a5a40" stroke-width="1.5"/>
+      <path d="M714 38 L726 38 L731 55 L709 55 Z" fill="#c9a45c"/>
+      <circle cx="720" cy="57" r="2.4" fill="#2b3033"/>
+      <rect x="724" y="58" width="16" height="7" rx="1" fill="#e8dcc0" opacity="0.8" transform="rotate(8 724 58)"/>
+    </g><g class="bell" style="animation-delay:-3.01s; transform-origin:845px 8px">
+      <line x1="845" y1="8" x2="845" y2="45" stroke="#7a5a40" stroke-width="1.5"/>
+      <path d="M839 45 L851 45 L856 62 L834 62 Z" fill="#c9a45c"/>
+      <circle cx="845" cy="64" r="2.4" fill="#2b3033"/>
+      <rect x="849" y="65" width="16" height="7" rx="1" fill="#e8dcc0" opacity="0.8" transform="rotate(8 849 65)"/>
+    </g><g class="bell" style="animation-delay:-3.44s; transform-origin:940px 8px">
+      <line x1="940" y1="8" x2="940" y2="52" stroke="#7a5a40" stroke-width="1.5"/>
+      <path d="M934 52 L946 52 L951 69 L929 69 Z" fill="#c9a45c"/>
+      <circle cx="940" cy="71" r="2.4" fill="#2b3033"/>
+      <rect x="944" y="72" width="16" height="7" rx="1" fill="#e8dcc0" opacity="0.8" transform="rotate(8 944 72)"/>
+    </g>
+  </svg>
 
-		<div id="status">
-			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
-			<progress id="status-progress"></progress>
-			<div id="status-notice"></div>
-		</div>
+  <svg id="emblem" viewBox="0 0 256 256">
+    <defs>
+      <radialGradient id="glowg" cx="50%" cy="50%" r="50%">
+        <stop offset="0" stop-color="#ffd98a" stop-opacity="0.95"/>
+        <stop offset="0.4" stop-color="#f2a93b" stop-opacity="0.45"/>
+        <stop offset="1" stop-color="#f2a93b" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="glassg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff0c2"/><stop offset="0.6" stop-color="#ffc766"/><stop offset="1" stop-color="#e8962e"/>
+      </linearGradient>
+      <linearGradient id="brassg" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#7d5c2a"/><stop offset="0.45" stop-color="#e6c173"/><stop offset="1" stop-color="#7d5c2a"/>
+      </linearGradient>
+      <clipPath id="fillclip"><rect id="fillrect" x="100" y="158" width="56" height="0"/></clipPath>
+    </defs>
+    <circle id="glow" cx="128" cy="128" r="118" fill="url(#glowg)" opacity="0.15"/>
+    <path id="ring" d="M227.8,128.0 L228.5,137.9 L229.0,148.1 L224.5,157.3 L220.8,166.4 L216.3,175.2 L209.2,182.2 L204.5,190.8 L198.6,198.6 L192.2,206.2 L182.9,210.1 L175.2,216.4 L166.0,219.6 L157.6,225.5 L147.6,226.7 L137.5,224.6 L128.0,229.0 L118.1,228.7 L108.4,226.5 L98.7,224.7 L89.9,219.9 L81.4,215.2 L72.0,211.8 L65.9,203.7 L58.8,197.2 L52.5,190.0 L47.4,181.9 L40.2,174.9 L35.5,166.3 L29.9,157.8 L28.8,147.7 L27.1,137.9 L28.0,128.0 L28.5,118.2 L31.2,108.7 L34.2,99.5 L33.9,89.0 L37.6,79.7 L42.8,71.1 L49.1,63.3 L57.3,57.3 L65.3,51.6 L73.3,46.2 L82.3,42.5 L89.7,35.5 L99.3,33.2 L108.1,28.2 L118.2,28.1 L128.0,24.8 L138.0,26.1 L147.1,31.9 L156.5,34.1 L166.6,34.9 L174.6,40.9 L184.4,43.6 L191.2,51.0 L197.9,58.1 L206.6,63.5 L213.0,71.2 L215.6,81.2 L218.3,90.6 L222.0,99.5 L227.0,108.3 L228.0,118.2 Z" fill="none" stroke="#e8c872" stroke-width="2.4" opacity="0.25"/>
+    <circle cx="128" cy="66" r="13" fill="none" stroke="url(#brassg)" stroke-width="6"/>
+    <path d="M113 78 L143 78 L154 92 L102 92 Z" fill="url(#brassg)"/>
+    <rect x="104" y="92" width="48" height="66" rx="9" fill="#2a3a38" stroke="#4d5f55" stroke-width="1"/>
+    <g clip-path="url(#fillclip)">
+      <rect x="104" y="92" width="48" height="66" rx="9" fill="url(#glassg)"/>
+      <g id="flame">
+        <path d="M128 106 C 138 120, 138 132, 128 140 C 118 132, 118 120, 128 106 Z" fill="#fffaf0"/>
+        <path d="M128 116 C 133 124, 133 131, 128 135 C 123 131, 123 124, 128 116 Z" fill="#ffcf6a"/>
+      </g>
+    </g>
+    <rect x="101" y="91" width="6" height="69" rx="3" fill="url(#brassg)"/>
+    <rect x="149" y="91" width="6" height="69" rx="3" fill="url(#brassg)"/>
+    <path d="M100 158 L156 158 L148 172 L108 172 Z" fill="url(#brassg)"/>
+    <g transform="translate(141 74)"><path d="M0 0 L-9 -7 L-7 2 Z" fill="#e8dcc0"/><path d="M0 0 L9 -7 L7 2 Z" fill="#e8dcc0"/><ellipse cx="0" cy="0" rx="2.2" ry="4.5" fill="#b9a680"/></g>
+    <g class="moth"><g transform="translate(128 44)"><path d="M0 0 L-5 -4 L-4 1 Z M0 0 L5 -4 L4 1 Z" fill="#e8dcc0" opacity="0.8"/></g></g>
+    <g class="moth b"><g transform="translate(128 208)"><path d="M0 0 L-4 -3 L-3 1 Z M0 0 L4 -3 L3 1 Z" fill="#e8dcc0" opacity="0.7"/></g></g>
+  </svg>
 
-		<script src="index.js"></script>
-		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":395436,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+  <h1>LUMENROOT</h1>
+  <p id="proverb">Every letter reaches its door.</p>
+  <p id="state">Unsealing the parcel&hellip; <span id="pct">0</span>%</p>
+  <div id="status-notice"></div>
+  <div id="made-with"><img alt="Godot" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDI0IiBoZWlnaHQ9IjEwMjQiPjxnIGZpbGw9IiNmZmYiPjxwYXRoIGQ9Ik0xMDUgNjczdjMzcTQwNyAzNTQgODE0IDB2LTMzeiIvPjxwYXRoIGZpbGw9IiM0NzhjYmYiIGQ9Im0xMDUgNjczIDE1MiAxNHExMiAxIDE1IDE0bDQgNjcgMTMyIDEwIDgtNjFxMi0xMSAxNS0xNWgxNjJxMTMgNCAxNSAxNWw4IDYxIDEzMi0xMCA0LTY3cTMtMTMgMTUtMTRsMTUyLTE0VjQyN3EzMC0zOSA1Ni04MS0zNS01OS04My0xMDgtNDMgMjAtODIgNDctNDAtMzctODgtNjQgNy01MSA4LTEwMi01OS0yOC0xMjMtNDItMjYgNDMtNDYgODktNDktNy05OCAwLTIwLTQ2LTQ2LTg5LTY0IDE0LTEyMyA0MiAxIDUxIDggMTAyLTQ4IDI3LTg4IDY0LTM5LTI3LTgyLTQ3LTQ4IDQ5LTgzIDEwOCAyNiA0MiA1NiA4MXptMCAzM3YzOWMwIDI3NiA4MTMgMjc2IDgxNCAwdi0zOWwtMTM0IDEyLTUgNjlxLTIgMTAtMTQgMTNsLTE2MiAxMXEtMTIgMC0xNi0xMWwtMTAtNjVINDQ2bC0xMCA2NXEtNCAxMS0xNiAxMWwtMTYyLTExcS0xMi0zLTE0LTEzbC01LTY5eiIvPjxwYXRoIGQ9Ik00ODMgNjAwYzAgMzQgNTggMzQgNTggMHYtODZjMC0zNC01OC0zNC01OCAweiIvPjxjaXJjbGUgY3g9IjcyNSIgY3k9IjUyNiIgcj0iOTAiLz48Y2lyY2xlIGN4PSIyOTkiIGN5PSI1MjYiIHI9IjkwIi8+PC9nPjxnIGZpbGw9IiM0MTQwNDIiPjxjaXJjbGUgY3g9IjMwNyIgY3k9IjUzMiIgcj0iNjAiLz48Y2lyY2xlIGN4PSI3MTciIGN5PSI1MzIiIHI9IjYwIi8+PC9nPjwvc3ZnPg==">made with Godot</div>
+</div>
+
+<script src="index.js"></script>
+<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":595824,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
 (function () {
 	const statusOverlay = document.getElementById('status');
-	const statusProgress = document.getElementById('status-progress');
 	const statusNotice = document.getElementById('status-notice');
+	const pct = document.getElementById('pct');
+	const fillRect = document.getElementById('fillrect');
+	const glow = document.getElementById('glow');
+	const ring = document.getElementById('ring');
+	const proverb = document.getElementById('proverb');
+
+	// Lore lines while the parcel is unsealed.
+	const lines = ['Every letter reaches its door.', 'Ring it once, and let it go.', 'What is kept, keeps you.',
+		'Three hundred years overdue, and still warm.', 'Hush now, little bell, the root is warm and deep.'];
+	let li = 0;
+	const cycle = setInterval(() => {
+		proverb.style.opacity = 0;
+		setTimeout(() => { li = (li + 1) % lines.length; proverb.textContent = lines[li]; proverb.style.opacity = 1; }, 600);
+	}, 3600);
+
+	// The lantern fills with light as the game arrives.
+	function setProgress(k) {
+		k = Math.max(0, Math.min(1, k));
+		const h = 66 * k;
+		fillRect.setAttribute('y', 158 - h);
+		fillRect.setAttribute('height', h);
+		glow.setAttribute('opacity', 0.15 + 0.85 * k);
+		ring.setAttribute('opacity', 0.25 + 0.65 * k);
+		pct.textContent = Math.round(k * 100);
+	}
 
 	let initializing = true;
 	let statusMode = '';
@@ -128,12 +185,14 @@ const engine = new Engine(GODOT_CONFIG);
 			return;
 		}
 		if (mode === 'hidden') {
-			statusOverlay.remove();
+			clearInterval(cycle);
+			setProgress(1);
+			statusOverlay.classList.add('done');
+			setTimeout(() => statusOverlay.remove(), 950);
 			initializing = false;
 			return;
 		}
 		statusOverlay.style.visibility = 'visible';
-		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
 		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
 		statusMode = mode;
 	}
@@ -142,8 +201,7 @@ const engine = new Engine(GODOT_CONFIG);
 		while (statusNotice.lastChild) {
 			statusNotice.removeChild(statusNotice.lastChild);
 		}
-		const lines = text.split('\n');
-		lines.forEach((line) => {
+		text.split('\n').forEach((line) => {
 			statusNotice.appendChild(document.createTextNode(line));
 			statusNotice.appendChild(document.createElement('br'));
 		});
@@ -202,11 +260,7 @@ const engine = new Engine(GODOT_CONFIG);
 		engine.startGame({
 			'onProgress': function (current, total) {
 				if (current > 0 && total > 0) {
-					statusProgress.value = current;
-					statusProgress.max = total;
-				} else {
-					statusProgress.removeAttribute('value');
-					statusProgress.removeAttribute('max');
+					setProgress(current / total);
 				}
 			},
 		}).then(() => {
@@ -214,7 +268,7 @@ const engine = new Engine(GODOT_CONFIG);
 		}, displayFailureNotice);
 	}
 }());
-		</script>
-	</body>
+</script>
+</body>
 </html>
 
