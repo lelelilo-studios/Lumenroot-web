@@ -140,9 +140,39 @@ h1 { font-weight: normal; letter-spacing: 0.55em; margin: 18px 0 4px 0.55em; fon
   <small>The Root Post's map is wider than it is tall.</small>
 </div>
 
+<script>
+// A phone draws three device pixels to every CSS pixel. For a painted,
+// soft-focus game that's several times the GPU work (and heat) for little
+// to see, so touch screens render at most 2 per CSS pixel; the browser scales
+// up the rest. Godot reads window.devicePixelRatio to size its canvas.
+// ?dpr=1.5 (etc.) overrides, for measuring.
+(function () {
+	const real = window.devicePixelRatio || 1;
+	const asked = Number(new URLSearchParams(location.search).get('dpr'));
+	const coarse = window.matchMedia('(pointer: coarse)').matches;
+	const cap = asked > 0 ? asked : (coarse ? 2 : real);
+	if (cap < real) {
+		Object.defineProperty(window, 'devicePixelRatio', { get: () => cap, configurable: true });
+	}
+})();
+</script>
+<script>
+// The notch and the home bar, in CSS pixels [left, top, right, bottom]: the
+// touch controls keep clear of them (read by ui/touch_controls.gd).
+window.lumenSafeArea = function () {
+	const d = document.createElement('div');
+	d.style.cssText = 'position:fixed;top:0;left:0;visibility:hidden;pointer-events:none;' +
+		'padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+	document.body.appendChild(d);
+	const cs = getComputedStyle(d);
+	const r = [cs.paddingLeft, cs.paddingTop, cs.paddingRight, cs.paddingBottom].map(v => parseFloat(v) || 0);
+	d.remove();
+	return JSON.stringify(r);
+};
+</script>
 <script src="index.js"></script>
 <script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":3399484,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":3427304,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
